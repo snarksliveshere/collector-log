@@ -1,2 +1,2 @@
 # collector-log
-log for collector toolkit
+created by Victor Safronov `cafronoff@gmail.com`
