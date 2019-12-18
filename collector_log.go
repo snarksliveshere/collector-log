@@ -35,9 +35,10 @@ type TaskLog struct {
 	TaskSource        string                 `sql:"task_source,notnull"`
 	TaskDateFrom      string                 `sql:"task_date_from,notnull"`
 	TaskDateTo        string                 `sql:"task_date_to,notnull"`
-	TaskOtherParams   map[string]interface{} `sql:"task_other_params"`
+	TaskInitParams    map[string]interface{} `sql:"task_init_params"`
 	TaskCollectParams map[string]interface{} `sql:"task_collect_params"`
 	Errors            map[string]interface{} `sql:"errors"`
+	Info              map[string]interface{} `sql:"info"`
 	StartedAt         time.Time              `sql:"started_at,notnull"`
 	FinishedAt        time.Time              `sql:"finished_at"`
 	IsFinished        bool                   `sql:"is_finished,notnull"`
@@ -72,13 +73,14 @@ func (cl *CollectorLog) CreateTableIfNeeded() {
 		task_source                 TEXT 								   		   ,
 		task_date_from              DATE 								           ,
 		task_date_to                DATE 								           ,
-		task_other_params           JSONB 								           ,
+		task_init_params            JSONB 								           ,
 		task_collect_params         JSONB 								           ,
 		started_at                  TIMESTAMP WITH TIME ZONE               NOT NULL,
 		finished_at                 TIMESTAMP WITH TIME ZONE					   ,
 		is_finished 				BOOLEAN  				 DEFAULT FALSE NOT NULL,
 		error_message               TEXT										   ,
 		errors                      JSONB                                          ,
+		info                        JSONB                                          ,
 		has_error                   BOOLEAN                  DEFAULT FALSE NOT NULL,
 		from_api_loaded_num         INT											   ,
 		from_api_loaded_at          TIMESTAMP WITH TIME ZONE					   ,
@@ -109,23 +111,14 @@ func (cl *CollectorLog) StartTaskLog(
 	cl.Log.Infof("Start task: %s at %s", taskName, time.Now().String())
 
 	return &TaskLog{
-		IsApiTask:       isApiTask,
-		TaskName:        taskName,
-		TaskSource:      source,
-		TaskDateFrom:    dateFrom.Format("2006-01-02"),
-		TaskDateTo:      dateTo.Format("2006-01-02"),
-		TaskOtherParams: otherParams,
-		StartedAt:       time.Now(),
+		IsApiTask:      isApiTask,
+		TaskName:       taskName,
+		TaskSource:     source,
+		TaskDateFrom:   dateFrom.Format("2006-01-02"),
+		TaskDateTo:     dateTo.Format("2006-01-02"),
+		TaskInitParams: otherParams,
+		StartedAt:      time.Now(),
 	}
-}
-
-func (cl *CollectorLog) StockNonCriticalErrorTask(taskLog *TaskLog, whereError string, err error) {
-	if taskLog.Errors == nil {
-		taskLog.Errors = make(map[string]interface{}, 1)
-	}
-	taskLog.Errors[whereError] = err.Error()
-	taskLog.HasError = true
-	cl.LogErrorWithField(whereError, err)
 }
 
 func (cl *CollectorLog) StockBulkNonCriticalErrorTask(taskLog *TaskLog, mm map[string]interface{}) {
@@ -133,6 +126,7 @@ func (cl *CollectorLog) StockBulkNonCriticalErrorTask(taskLog *TaskLog, mm map[s
 		cl.LogText("there are no other params")
 		return
 	}
+	taskLog.HasError = true
 	taskLog.Errors = mm
 	if cl.writeLogEnable {
 		cl.LogOtherParams("TaskNonCriticalErrors", mm)
@@ -144,11 +138,11 @@ func (cl *CollectorLog) StockOtherParamsTask(taskLog *TaskLog, mm map[string]int
 		cl.LogText("there are no other params")
 		return
 	}
-	if taskLog.TaskOtherParams == nil {
-		taskLog.TaskOtherParams = make(map[string]interface{}, len(mm))
+	if taskLog.TaskInitParams == nil {
+		taskLog.TaskInitParams = make(map[string]interface{}, len(mm))
 	}
 	for k, v := range mm {
-		taskLog.TaskOtherParams[k] = v
+		taskLog.TaskInitParams[k] = v
 	}
 	if cl.writeLogEnable {
 		cl.LogOtherParams("TaskLogOtherParams", mm)
@@ -160,7 +154,7 @@ func (cl *CollectorLog) StockBulkOtherParamsTask(taskLog *TaskLog, mm map[string
 		cl.LogText("there are no other params")
 		return
 	}
-	taskLog.TaskOtherParams = mm
+	taskLog.TaskInitParams = mm
 	if cl.writeLogEnable {
 		cl.LogOtherParams("TaskOtherParams", mm)
 	}
