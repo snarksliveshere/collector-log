@@ -133,21 +133,21 @@ func (cl *CollectorLog) StockBulkNonCriticalErrorTask(taskLog *TaskLog, mm map[s
 	}
 }
 
-func (cl *CollectorLog) StockOtherParamsTask(taskLog *TaskLog, mm map[string]interface{}) {
-	if len(mm) == 0 {
-		cl.LogText("there are no other params")
-		return
-	}
-	if taskLog.TaskInitParams == nil {
-		taskLog.TaskInitParams = make(map[string]interface{}, len(mm))
-	}
-	for k, v := range mm {
-		taskLog.TaskInitParams[k] = v
-	}
-	if cl.writeLogEnable {
-		cl.LogOtherParams("TaskLogOtherParams", mm)
-	}
-}
+//func (cl *CollectorLog) StockOtherParamsTask(taskLog *TaskLog, mm map[string]interface{}) {
+//	if len(mm) == 0 {
+//		cl.LogText("there are no other params")
+//		return
+//	}
+//	if taskLog.TaskInitParams == nil {
+//		taskLog.TaskInitParams = make(map[string]interface{}, len(mm))
+//	}
+//	for k, v := range mm {
+//		taskLog.TaskInitParams[k] = v
+//	}
+//	if cl.writeLogEnable {
+//		cl.LogOtherParams("TaskLogOtherParams", mm)
+//	}
+//}
 
 func (cl *CollectorLog) StockBulkOtherParamsTask(taskLog *TaskLog, mm map[string]interface{}) {
 	if len(mm) == 0 {
