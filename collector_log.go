@@ -123,7 +123,7 @@ func (cl *CollectorLog) StartTaskLog(
 
 func (cl *CollectorLog) StockBulkNonCriticalErrorTask(taskLog *TaskLog, mm map[string]interface{}) {
 	if len(mm) == 0 {
-		cl.LogText("there are no other params")
+		cl.LogInfo("no noncritical errors")
 		return
 	}
 	taskLog.HasError = true
@@ -133,6 +133,18 @@ func (cl *CollectorLog) StockBulkNonCriticalErrorTask(taskLog *TaskLog, mm map[s
 	}
 }
 
+func (cl *CollectorLog) StockBulkInfo(taskLog *TaskLog, mm map[string]interface{}) {
+	if len(mm) == 0 {
+		cl.LogInfo("no additional info")
+		return
+	}
+	taskLog.Info = mm
+	if cl.writeLogEnable {
+		cl.LogOtherParams("TaskAdditionalINfo", mm)
+	}
+}
+
+// TODO: concurrency
 //func (cl *CollectorLog) StockOtherParamsTask(taskLog *TaskLog, mm map[string]interface{}) {
 //	if len(mm) == 0 {
 //		cl.LogText("there are no other params")
@@ -151,7 +163,7 @@ func (cl *CollectorLog) StockBulkNonCriticalErrorTask(taskLog *TaskLog, mm map[s
 
 func (cl *CollectorLog) StockBulkOtherParamsTask(taskLog *TaskLog, mm map[string]interface{}) {
 	if len(mm) == 0 {
-		cl.LogText("there are no other params")
+		cl.LogInfo("there are no other params")
 		return
 	}
 	taskLog.TaskInitParams = mm
@@ -166,7 +178,7 @@ func (cl *CollectorLog) LogOtherParams(str string, mm map[string]interface{}) {
 
 func (cl *CollectorLog) StockBulkCollectParamsTask(taskLog *TaskLog, mm map[string]interface{}) {
 	if len(mm) == 0 {
-		cl.LogText("there are no other params")
+		cl.LogInfo("there are no collect params")
 		return
 	}
 	taskLog.TaskCollectParams = mm
@@ -175,8 +187,12 @@ func (cl *CollectorLog) StockBulkCollectParamsTask(taskLog *TaskLog, mm map[stri
 	}
 }
 
-func (cl *CollectorLog) LogText(str string) {
+func (cl *CollectorLog) LogInfo(str string) {
 	cl.Log.Info(str)
+}
+
+func (cl *CollectorLog) LogInfoF(pattern string, args ...interface{}) {
+	cl.Log.Infof(pattern, args)
 }
 
 func (cl *CollectorLog) LogErrorWithField(whereError string, err error) {
@@ -236,6 +252,7 @@ func (cl *CollectorLog) LogFinishTask(taskLog *TaskLog) {
 func (cl *CollectorLog) StockLoadedFromApi(taskLog *TaskLog, loadedFromApiNum int) {
 	taskLog.FromApiLoadedNum = loadedFromApiNum
 	taskLog.FromApiLoadedAt = time.Now()
+
 	if cl.writeLogEnable {
 		cl.LogNumLoadedFromApi(loadedFromApiNum)
 	}
