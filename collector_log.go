@@ -29,7 +29,6 @@ type ExtraLog struct {
 
 type TaskLog struct {
 	TableName         struct{}               `sql:"log"`
-	Id                uint64                 `sql:"id,pk"`
 	TaskName          string                 `sql:"task_name,notnull"`
 	IsApiTask         bool                   `sql:"is_api_task,notnull"`
 	TaskSource        string                 `sql:"task_source,notnull"`
@@ -128,9 +127,7 @@ func (cl *CollectorLog) StockBulkNonCriticalErrorTask(taskLog *TaskLog, mm map[s
 	}
 	taskLog.HasError = true
 	taskLog.Errors = mm
-	if cl.writeLogEnable {
-		cl.LogOtherParams("TaskNonCriticalErrors", mm)
-	}
+	cl.LogOtherParams("TaskNonCriticalErrors", mm)
 }
 
 func (cl *CollectorLog) StockBulkInfo(taskLog *TaskLog, mm map[string]interface{}) {
